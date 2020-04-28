@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"gopkg.in/src-d/go-queue.v1"
-	"gopkg.in/src-d/go-queue.v1/test"
+	"gopkg.in/mq.v1"
+	"gopkg.in/mq.v1/test"
 
 	"github.com/streadway/amqp"
 	"github.com/stretchr/testify/assert"

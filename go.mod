@@ -1,6 +1,4 @@
-module gopkg.in/src-d/go-queue.v1
-
-go 1.14
+module gopkg.in/mq.v1
 
 require (
 	github.com/google/uuid v1.1.1

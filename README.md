@@ -1,10 +1,10 @@
-# go-queue [![GoDoc](https://godoc.org/gopkg.in/src-d/go-queue.v1?status.svg)](https://godoc.org/github.com/src-d/go-queue) [![Build Status](https://travis-ci.org/src-d/go-queue.svg)](https://travis-ci.org/src-d/go-queue) [![Build status](https://ci.appveyor.com/api/projects/status/15cdr1nk890qpk7g?svg=true)](https://ci.appveyor.com/project/mcuadros/go-queue-5ncaj) [![codecov.io](https://codecov.io/github/src-d/go-queue/coverage.svg)](https://codecov.io/github/src-d/go-queue) [![Go Report Card](https://goreportcard.com/badge/github.com/src-d/go-queue)](https://goreportcard.com/report/github.com/src-d/go-queue)
+# mq [![GoDoc](https://godoc.org/gopkg.in/go-mq/mq.v1?status.svg)](https://godoc.org/github.com/go-mq/mq) [![Go Report Card](https://goreportcard.com/badge/github.com/go-mq/mq)](https://goreportcard.com/report/github.com/go-mq/mq)
 
-Queue is a generic interface to abstract the details of implementation of queue
+MQ is a generic interface to abstract the details of implementation of messaging queues
 systems.
 
 Similar to the package [`database/sql`](https://golang.org/pkg/database/sql/),
-this package implements a common interface to interact with different queue
+this package implements a common interface to interact with different message queue
 systems, in a unified way.
 
 Currently, only AMQP queues and an in-memory queue are supported.
@@ -12,10 +12,10 @@ Currently, only AMQP queues and an in-memory queue are supported.
 Installation
 ------------
 
-The recommended way to install *go-queue* is:
+The recommended way to install *mq* is:
 
 ```
-go get -u gopkg.in/src-d/go-queue.v1/...
+go get gopkg.in/mq.v1
 ```
 
 Usage
@@ -24,42 +24,42 @@ Usage
 This example shows how to publish and consume a Job from the in-memory
 implementation, very useful for unit tests.
 
-The queue implementations to be supported by the `NewBroker` should be imported
+The mq implementations to be supported by the `NewBroker` should be imported
 as shows the example.
 
 ```go
+package main
+
 import (
-    ...
-	"gopkg.in/src-d/go-queue.v1"
-	_ "gopkg.in/src-d/go-queue.v1/memory"
+    "fmt"
+	"gopkg.in/mq.v1"
+	_ "gopkg.in/mq.v1/memory"
+    "log"
 )
 
-...
-
-b, _ := queue.NewBroker("memory://")
-q, _ := b.Queue("test-queue")
-
-j, _ := queue.NewJob()
-if err := j.Encode("hello world!"); err != nil {
-    log.Fatal(err)
+//...
+func main() {
+    b, _ := queue.NewBroker("memory://")
+    q, _ := b.Queue("test-queue")
+    j := queue.NewJob()
+    
+    if err := q.Publish(j); err != nil {
+        log.Fatal(err)
+    }
+    
+    iter, err := q.Consume(1)
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    consumedJob, _ := iter.Next()
+    
+    var payload string
+    _ = consumedJob.Decode(&payload)
+    
+    fmt.Println(payload)
+    // Output: hello world!
 }
-
-if err := q.Publish(j); err != nil {
-    log.Fatal(err)
-}
-
-iter, err := q.Consume(1)
-if err != nil {
-    log.Fatal(err)
-}
-
-consumedJob, _ := iter.Next()
-
-var payload string
-_ = consumedJob.Decode(&payload)
-
-fmt.Println(payload)
-// Output: hello world!
 ```
 
 

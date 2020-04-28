@@ -7,7 +7,7 @@ go:
   - 1.13.x
   - 1.14.x
 
-go_import_path: gopkg.in/src-d/go-queue.v1
+go_import_path: gopkg.in/mq.v1
 
 matrix:
   fast_finish: true

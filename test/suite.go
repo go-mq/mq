@@ -3,7 +3,7 @@ package test
 import (
 	"errors"
 	"fmt"
-	"gopkg.in/src-d/go-queue.v1"
+	"gopkg.in/mq.v1"
 	"math/rand"
 	"strconv"
 	"sync"

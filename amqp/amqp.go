@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"gopkg.in/src-d/go-queue.v1"
+	"gopkg.in/mq.v1"
 
 	"github.com/jpillora/backoff"
 	"github.com/kelseyhightower/envconfig"

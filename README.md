@@ -1,4 +1,4 @@
-# mq [![GoDoc](https://godoc.org/gopkg.in/go-mq/mq.v1?status.svg)](https://godoc.org/github.com/go-mq/mq) [![Go Report Card](https://goreportcard.com/badge/github.com/go-mq/mq)](https://goreportcard.com/report/github.com/go-mq/mq)
+# mq [![GoDoc](https://godoc.org/gopkg.in/go-mq/mq.v1?status.svg)](https://godoc.org/github.com/go-mq/mq) ![Go](https://github.com/go-mq/mq/workflows/Go/badge.svg?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/go-mq/mq)](https://goreportcard.com/report/github.com/go-mq/mq)
 
 MQ is a generic interface to abstract the details of implementation of messaging queues
 systems.

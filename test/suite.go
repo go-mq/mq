@@ -3,6 +3,7 @@ package test
 import (
 	"errors"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"gopkg.in/mq.v1"
 	"math/rand"
 	"strconv"
@@ -577,7 +578,10 @@ func (s *QueueSuite) TestConcurrent() {
 						calledWG.Done()
 						continueWG.Wait()
 
-						assert.NoError(j.Ack())
+						if err := j.Ack(); err != nil {
+							logrus.Errorf("ack error: %+v", err)
+							t.Error("failed to ack")
+						}
 					}()
 				}
 			}()

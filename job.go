@@ -1,16 +1,25 @@
 package queue
 
 import (
+	"encoding"
+	"encoding/json"
 	"fmt"
-	"time"
-
-	"gopkg.in/src-d/go-errors.v1"
-
+	"github.com/golang/protobuf/proto"
 	"github.com/google/uuid"
-	"gopkg.in/vmihailenco/msgpack.v2"
+	"github.com/vmihailenco/msgpack/v4"
+	"gopkg.in/src-d/go-errors.v1"
+	"gopkg.in/yaml.v2"
+	"time"
 )
 
-const msgpackContentType = "application/msgpack"
+type contentType string
+
+const (
+	ContentTypeMsgpack    contentType = "application/msgpack"
+	ContentTypeJSON       contentType = "application/json"
+	ContentTypeYAML       contentType = "application/yaml"
+	ContentTypeProtobuf   contentType = "application/protobuf"
+)
 
 // Job contains the information for a job to be published to a queue.
 type Job struct {
@@ -25,7 +34,7 @@ type Job struct {
 	// ErrorType is the kind of error that made the job fail.
 	ErrorType string
 	// ContentType of the job
-	ContentType string
+	ContentType contentType
 	// Raw content of the Job
 	Raw []byte
 	// Acknowledger is the acknowledgement management system for the job.
@@ -51,7 +60,7 @@ func NewJob() *Job {
 		ID:          uuid.New().String(),
 		Priority:    PriorityNormal,
 		Timestamp:   time.Now(),
-		ContentType: msgpackContentType,
+		ContentType: ContentTypeMsgpack,
 	}
 }
 
@@ -63,7 +72,7 @@ func (j *Job) SetPriority(priority Priority) {
 // Encode encodes the payload to the wire format used.
 func (j *Job) Encode(payload interface{}) error {
 	var err error
-	j.Raw, err = encode(msgpackContentType, &payload)
+	j.Raw, err = encode(ContentTypeMsgpack, &payload)
 	if err != nil {
 		return err
 	}
@@ -73,7 +82,7 @@ func (j *Job) Encode(payload interface{}) error {
 
 // Decode decodes the payload from the wire format.
 func (j *Job) Decode(payload interface{}) error {
-	return decode(msgpackContentType, j.Raw, &payload)
+	return decode(ContentTypeMsgpack, j.Raw, &payload)
 }
 
 // ErrCantAck is the error returned when the Job does not come from a queue
@@ -101,20 +110,74 @@ func (j *Job) Size() int {
 	return len(j.Raw)
 }
 
-func encode(mime string, p interface{}) ([]byte, error) {
+type Unmarshaler interface {
+	Unmarshal([]byte) error
+}
+
+type Marshaler interface {
+	Marshal() ([]byte,error)
+}
+
+func encode(mime contentType, p interface{}) ([]byte, error) {
 	switch mime {
-	case msgpackContentType:
+	case ContentTypeMsgpack:
 		return msgpack.Marshal(p)
+	case ContentTypeJSON:
+		return json.Marshal(p)
+	case ContentTypeYAML:
+		return yaml.Marshal(p)
+	case ContentTypeProtobuf:
+		var ok bool
+		var pm proto.Message
+
+		if pm, ok = p.(proto.Message); !ok {
+			return nil, fmt.Errorf("must provide payload that implements proto.Message interface")
+		}
+
+		return proto.Marshal(pm)
 	default:
+		// No recognized mime-type, try encoding interfaces or error out
+		switch p.(type) {
+		case encoding.BinaryMarshaler:
+			return p.(encoding.BinaryMarshaler).MarshalBinary()
+		case encoding.TextMarshaler:
+			return p.(encoding.TextMarshaler).MarshalText()
+		case Marshaler:
+			return p.(Marshaler).Marshal()
+		}
+
 		return nil, fmt.Errorf("unknown content type: %s", mime)
 	}
 }
 
-func decode(mime string, r []byte, p interface{}) error {
+func decode(mime contentType, r []byte, p interface{}) error {
 	switch mime {
-	case msgpackContentType:
+	case ContentTypeMsgpack:
 		return msgpack.Unmarshal(r, p)
+	case ContentTypeJSON:
+		return json.Unmarshal(r, p)
+	case ContentTypeYAML:
+		return yaml.Unmarshal(r, p)
+	case ContentTypeProtobuf:
+		var ok bool
+		var pm proto.Message
+
+		if pm, ok = p.(proto.Message); !ok {
+			return fmt.Errorf("must provide payload that implements proto.Message interface")
+		}
+
+		return proto.Unmarshal(r, pm)
 	default:
+		// No recognized mime-type, try decoding interfaces or error out
+		switch p.(type) {
+		case encoding.BinaryUnmarshaler:
+			return p.(encoding.BinaryUnmarshaler).UnmarshalBinary(r)
+		case encoding.TextUnmarshaler:
+			return p.(encoding.TextUnmarshaler).UnmarshalText(r)
+		case Unmarshaler:
+			return p.(Unmarshaler).Unmarshal(r)
+		}
+
 		return fmt.Errorf("unknown content type: %s", mime)
 	}
 }

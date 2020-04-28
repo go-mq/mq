@@ -30,8 +30,8 @@ package main
 
 import (
     "fmt"
-	"github.com/go-mq/mq/v1"
-	_ "github.com/go-mq/mq/v1/memory"
+    "github.com/go-mq/mq/v1"
+    _ "github.com/go-mq/mq/v1/memory"
     "log"
 )
 

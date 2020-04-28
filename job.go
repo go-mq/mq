@@ -12,13 +12,11 @@ import (
 	"time"
 )
 
-type contentType string
-
 const (
-	ContentTypeMsgpack    contentType = "application/msgpack"
-	ContentTypeJSON       contentType = "application/json"
-	ContentTypeYAML       contentType = "application/yaml"
-	ContentTypeProtobuf   contentType = "application/protobuf"
+	ContentTypeMsgpack  = "application/msgpack"
+	ContentTypeJSON     = "application/json"
+	ContentTypeYAML     = "application/yaml"
+	ContentTypeProtobuf = "application/protobuf"
 )
 
 // Job contains the information for a job to be published to a queue.
@@ -34,7 +32,7 @@ type Job struct {
 	// ErrorType is the kind of error that made the job fail.
 	ErrorType string
 	// ContentType of the job
-	ContentType contentType
+	ContentType string
 	// Raw content of the Job
 	Raw []byte
 	// Acknowledger is the acknowledgement management system for the job.
@@ -115,10 +113,10 @@ type Unmarshaler interface {
 }
 
 type Marshaler interface {
-	Marshal() ([]byte,error)
+	Marshal() ([]byte, error)
 }
 
-func encode(mime contentType, p interface{}) ([]byte, error) {
+func encode(mime string, p interface{}) ([]byte, error) {
 	switch mime {
 	case ContentTypeMsgpack:
 		return msgpack.Marshal(p)
@@ -150,7 +148,7 @@ func encode(mime contentType, p interface{}) ([]byte, error) {
 	}
 }
 
-func decode(mime contentType, r []byte, p interface{}) error {
+func decode(mime string, r []byte, p interface{}) error {
 	switch mime {
 	case ContentTypeMsgpack:
 		return msgpack.Unmarshal(r, p)

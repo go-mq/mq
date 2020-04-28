@@ -13,7 +13,7 @@ Installation
 The recommended way to install *mq* is:
 
 ```
-go get gopkg.in/mq.v1
+go get github.com/go-mq/mq/v1
 ```
 
 Usage
@@ -30,8 +30,8 @@ package main
 
 import (
     "fmt"
-	"gopkg.in/mq.v1"
-	_ "gopkg.in/mq.v1/memory"
+	"github.com/go-mq/mq/v1"
+	_ "github.com/go-mq/mq/v1/memory"
     "log"
 )
 

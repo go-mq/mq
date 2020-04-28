@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/mq.v1"
+	"github.com/go-mq/mq/v1"
 	"math/rand"
 	"strconv"
 	"sync"

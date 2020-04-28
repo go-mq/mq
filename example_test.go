@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"gopkg.in/mq.v1"
-	_ "gopkg.in/mq.v1/memory"
+	"github.com/go-mq/mq/v1"
+	_ "github.com/go-mq/mq/v1/memory"
 )
 
 func ExampleMemoryQueue() {

@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"gopkg.in/mq.v1"
+	"github.com/go-mq/mq/v1"
 )
 
 func init() {

@@ -1,5 +1,7 @@
 module github.com/go-mq/mq/v2
 
+go 1.14
+
 require (
 	github.com/golang/protobuf v1.3.4
 	github.com/google/uuid v1.1.1

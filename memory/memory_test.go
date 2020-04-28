@@ -4,8 +4,8 @@ import (
 	"io"
 	"testing"
 
-	"github.com/go-mq/mq/v1"
-	"github.com/go-mq/mq/v1/test"
+	"github.com/go-mq/mq/v2"
+	"github.com/go-mq/mq/v2/test"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"

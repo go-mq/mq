@@ -1,11 +1,8 @@
-module github.com/go-mq/mq/v1
-
-go 1.14
+module github.com/go-mq/mq/v2
 
 require (
 	github.com/golang/protobuf v1.3.4
 	github.com/google/uuid v1.1.1
-	github.com/linkedin/goavro/v2 v2.9.7
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sirupsen/logrus v1.5.0
 	github.com/stretchr/testify v1.5.1

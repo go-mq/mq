@@ -3,8 +3,8 @@ package test
 import (
 	"errors"
 	"fmt"
+	"github.com/go-mq/mq/v2"
 	"github.com/sirupsen/logrus"
-	"github.com/go-mq/mq/v1"
 	"math/rand"
 	"strconv"
 	"sync"

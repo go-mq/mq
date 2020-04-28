@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-mq/mq/v1"
+	"github.com/go-mq/mq/v2"
 )
 
 func init() {

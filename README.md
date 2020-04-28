@@ -37,9 +37,9 @@ import (
 
 //...
 func main() {
-    b, _ := queue.NewBroker("memory://")
+    b, _ := mq.NewBroker("memory://")
     q, _ := b.Queue("test-queue")
-    j := queue.NewJob()
+    j := mq.NewJob()
     
     if err := q.Publish(j); err != nil {
         log.Fatal(err)

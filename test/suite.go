@@ -33,11 +33,11 @@ type QueueSuite struct {
 	TxNotSupported bool
 	BrokerURI      string
 
-	Broker queue.Broker
+	Broker mq.Broker
 }
 
 func (s *QueueSuite) SetupTest() {
-	b, err := queue.NewBroker(s.BrokerURI)
+	b, err := mq.NewBroker(s.BrokerURI)
 	if !s.NoError(err) {
 		s.FailNow(err.Error())
 	}
@@ -112,7 +112,7 @@ func (s *QueueSuite) TestJobIter_Next_empty() {
 
 	assert.Equal(0, nJobs)
 
-	j := queue.NewJob()
+	j := mq.NewJob()
 
 	err = j.Encode(1)
 	assert.NoError(err)
@@ -134,7 +134,7 @@ func (s *QueueSuite) TestJob_Reject_no_requeue() {
 	assert.NoError(err)
 	assert.NotNil(q)
 
-	j := queue.NewJob()
+	j := mq.NewJob()
 
 	err = j.Encode(1)
 	assert.NoError(err)
@@ -168,7 +168,7 @@ func (s *QueueSuite) TestJob_Reject_requeue() {
 	assert.NoError(err)
 	assert.NotNil(q)
 
-	j := queue.NewJob()
+	j := mq.NewJob()
 
 	err = j.Encode(1)
 	assert.NoError(err)
@@ -204,7 +204,7 @@ func (s *QueueSuite) TestPublish_nil() {
 	assert.NotNil(q)
 
 	err = q.Publish(nil)
-	assert.True(queue.ErrEmptyJob.Is(err))
+	assert.True(mq.ErrEmptyJob.Is(err))
 }
 
 func (s *QueueSuite) TestPublish_empty() {
@@ -215,8 +215,8 @@ func (s *QueueSuite) TestPublish_empty() {
 	assert.NoError(err)
 	assert.NotNil(q)
 
-	err = q.Publish(&queue.Job{})
-	assert.True(queue.ErrEmptyJob.Is(err))
+	err = q.Publish(&mq.Job{})
+	assert.True(mq.ErrEmptyJob.Is(err))
 }
 
 func (s *QueueSuite) TestPublishDelayed_nil() {
@@ -228,7 +228,7 @@ func (s *QueueSuite) TestPublishDelayed_nil() {
 	assert.NotNil(q)
 
 	err = q.PublishDelayed(nil, time.Second)
-	assert.True(queue.ErrEmptyJob.Is(err))
+	assert.True(mq.ErrEmptyJob.Is(err))
 }
 
 func (s *QueueSuite) TestPublishDelayed_empty() {
@@ -239,8 +239,8 @@ func (s *QueueSuite) TestPublishDelayed_empty() {
 	assert.NoError(err)
 	assert.NotNil(q)
 
-	err = q.PublishDelayed(&queue.Job{}, time.Second)
-	assert.True(queue.ErrEmptyJob.Is(err))
+	err = q.PublishDelayed(&mq.Job{}, time.Second)
+	assert.True(mq.ErrEmptyJob.Is(err))
 }
 
 func (s *QueueSuite) TestPublishAndConsume_immediate_ack() {
@@ -253,11 +253,11 @@ func (s *QueueSuite) TestPublishAndConsume_immediate_ack() {
 
 	var (
 		ids        []string
-		priorities []queue.Priority
+		priorities []mq.Priority
 		timestamps []time.Time
 	)
 	for i := 0; i < 100; i++ {
-		j := queue.NewJob()
+		j := mq.NewJob()
 		err = j.Encode(i)
 		assert.NoError(err)
 		err = q.Publish(j)
@@ -335,14 +335,14 @@ func (s *QueueSuite) TestConsumersCanShareJobIteratorConcurrently() {
 }
 
 // newQueueWithJobs creates and return a new queue with n jobs in it.
-func (s *QueueSuite) newQueueWithJobs(n int) queue.Queue {
+func (s *QueueSuite) newQueueWithJobs(n int) mq.Queue {
 	assert := assert.New(s.T())
 
 	q, err := s.Broker.Queue(NewName())
 	assert.NoError(err)
 
 	for i := 0; i < n; i++ {
-		job := queue.NewJob()
+		job := mq.NewJob()
 		err = job.Encode(i)
 		assert.NoError(err)
 		err = q.Publish(job)
@@ -362,7 +362,7 @@ func (s *QueueSuite) TestDelayed() {
 	assert.NoError(err)
 	assert.NotNil(q)
 
-	j := queue.NewJob()
+	j := mq.NewJob()
 	err = j.Encode("hello")
 	assert.NoError(err)
 
@@ -406,8 +406,8 @@ func (s *QueueSuite) TestTransaction_Error() {
 	assert.NoError(err)
 	assert.NotNil(q)
 
-	err = q.Transaction(func(qu queue.Queue) error {
-		job := queue.NewJob()
+	err = q.Transaction(func(qu mq.Queue) error {
+		job := mq.NewJob()
 		assert.NoError(job.Encode("goodbye"))
 		assert.NoError(qu.Publish(job))
 		return errors.New("foo")
@@ -436,8 +436,8 @@ func (s *QueueSuite) TestTransaction() {
 	assert.NoError(err)
 	assert.NotNil(q)
 
-	err = q.Transaction(func(q queue.Queue) error {
-		job := queue.NewJob()
+	err = q.Transaction(func(q mq.Queue) error {
+		job := mq.NewJob()
 		assert.NoError(job.Encode("hello"))
 		assert.NoError(q.Publish(job))
 		return nil
@@ -469,7 +469,7 @@ func (s *QueueSuite) TestTransaction_not_supported() {
 	assert.NotNil(q)
 
 	err = q.Transaction(nil)
-	assert.True(queue.ErrTxNotSupported.Is(err))
+	assert.True(mq.ErrTxNotSupported.Is(err))
 }
 
 func (s *QueueSuite) TestRetryQueue() {
@@ -481,14 +481,14 @@ func (s *QueueSuite) TestRetryQueue() {
 	assert.NotNil(q)
 
 	// 1: Publish jobs to the main queue.
-	j1 := queue.NewJob()
+	j1 := mq.NewJob()
 	err = j1.Encode(1)
 	assert.NoError(err)
 
 	err = q.Publish(j1)
 	assert.NoError(err)
 
-	j2 := queue.NewJob()
+	j2 := mq.NewJob()
 	err = j2.Encode(2)
 	assert.NoError(err)
 	err = q.Publish(j2)
@@ -561,7 +561,7 @@ func (s *QueueSuite) TestConcurrent() {
 			go func() {
 				for {
 					j, err := iter.Next()
-					if queue.ErrAlreadyClosed.Is(err) {
+					if mq.ErrAlreadyClosed.Is(err) {
 						return
 					}
 					assert.NoError(err)
@@ -591,7 +591,7 @@ func (s *QueueSuite) TestConcurrent() {
 
 			// Enqueue some jobs, 3 * advertisedWindow
 			for i := 0; i < advertisedWindow*3; i++ {
-				j := queue.NewJob()
+				j := mq.NewJob()
 				err = j.Encode(i)
 				assert.NoError(err)
 				err = q.Publish(j)
@@ -611,13 +611,13 @@ func (s *QueueSuite) TestConcurrent() {
 	}
 }
 
-func (s *QueueSuite) checkNextClosed(iter queue.JobIter) chan struct{} {
+func (s *QueueSuite) checkNextClosed(iter mq.JobIter) chan struct{} {
 	assert := assert.New(s.T())
 
 	done := make(chan struct{})
 	go func() {
 		j, err := iter.Next()
-		assert.True(queue.ErrAlreadyClosed.Is(err))
+		assert.True(mq.ErrAlreadyClosed.Is(err))
 		assert.Nil(j)
 		done <- struct{}{}
 	}()

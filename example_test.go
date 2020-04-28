@@ -1,4 +1,4 @@
-package queue_test
+package mq_test
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 )
 
 func ExampleMemoryQueue() {
-	b, err := queue.NewBroker("memory://")
+	b, err := mq.NewBroker("memory://")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -19,7 +19,7 @@ func ExampleMemoryQueue() {
 		log.Fatal(err)
 	}
 
-	j := queue.NewJob()
+	j := mq.NewJob()
 
 	if err := j.Encode("hello world!"); err != nil {
 		log.Fatal(err)

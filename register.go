@@ -1,4 +1,4 @@
-package queue
+package mq
 
 import (
 	"net/url"

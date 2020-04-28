@@ -9,40 +9,40 @@ import (
 )
 
 func init() {
-	queue.Register("memory", func(uri string) (queue.Broker, error) {
+	mq.Register("memory", func(uri string) (mq.Broker, error) {
 		return New(), nil
 	})
 
-	queue.Register("memoryfinite", func(uri string) (queue.Broker, error) {
+	mq.Register("memoryfinite", func(uri string) (mq.Broker, error) {
 		return NewFinite(true), nil
 	})
 }
 
 // Broker is a in-memory implementation of Broker.
 type Broker struct {
-	queues map[string]queue.Queue
+	queues map[string]mq.Queue
 	finite bool
 }
 
 // New creates a new Broker for an in-memory queue.
-func New() queue.Broker {
+func New() mq.Broker {
 	return NewFinite(false)
 }
 
 // NewFinite creates a new Broker for an in-memory queue. The argument
 // specifies if the JobIter stops on EOF or not.
-func NewFinite(finite bool) queue.Broker {
+func NewFinite(finite bool) mq.Broker {
 	return &Broker{
-		queues: make(map[string]queue.Queue),
+		queues: make(map[string]mq.Queue),
 		finite: finite,
 	}
 }
 
 // Queue returns the queue with the given name.
-func (b *Broker) Queue(name string) (queue.Queue, error) {
+func (b *Broker) Queue(name string) (mq.Queue, error) {
 	if _, ok := b.queues[name]; !ok {
 		b.queues[name] = &Queue{
-			jobs:   make([]*queue.Job, 0, 10),
+			jobs:   make([]*mq.Job, 0, 10),
 			finite: b.finite,
 		}
 	}
@@ -57,8 +57,8 @@ func (b *Broker) Close() error {
 
 // Queue implements a queue.Queue interface.
 type Queue struct {
-	jobs       []*queue.Job
-	buriedJobs []*queue.Job
+	jobs       []*mq.Job
+	buriedJobs []*mq.Job
 	sync.RWMutex
 	idx                int
 	publishImmediately bool
@@ -66,9 +66,9 @@ type Queue struct {
 }
 
 // Publish publishes a Job to the queue.
-func (q *Queue) Publish(j *queue.Job) error {
+func (q *Queue) Publish(j *mq.Job) error {
 	if j == nil || j.Size() == 0 {
-		return queue.ErrEmptyJob.New()
+		return mq.ErrEmptyJob.New()
 	}
 
 	q.Lock()
@@ -78,9 +78,9 @@ func (q *Queue) Publish(j *queue.Job) error {
 }
 
 // PublishDelayed publishes a Job to the queue with a given delay.
-func (q *Queue) PublishDelayed(j *queue.Job, delay time.Duration) error {
+func (q *Queue) PublishDelayed(j *mq.Job, delay time.Duration) error {
 	if j == nil || j.Size() == 0 {
-		return queue.ErrEmptyJob.New()
+		return mq.ErrEmptyJob.New()
 	}
 
 	if q.publishImmediately {
@@ -94,9 +94,9 @@ func (q *Queue) PublishDelayed(j *queue.Job, delay time.Duration) error {
 }
 
 // RepublishBuried implements the Queue interface.
-func (q *Queue) RepublishBuried(conditions ...queue.RepublishConditionFunc) error {
+func (q *Queue) RepublishBuried(conditions ...mq.RepublishConditionFunc) error {
 	for _, job := range q.buriedJobs {
-		if queue.RepublishConditions(conditions).Comply(job) {
+		if mq.RepublishConditions(conditions).Comply(job) {
 			job.ErrorType = ""
 			if err := q.Publish(job); err != nil {
 				return err
@@ -107,8 +107,8 @@ func (q *Queue) RepublishBuried(conditions ...queue.RepublishConditionFunc) erro
 }
 
 // Transaction calls the given callback inside a transaction.
-func (q *Queue) Transaction(txcb queue.TxCallback) error {
-	txQ := &Queue{jobs: make([]*queue.Job, 0, 10), publishImmediately: true}
+func (q *Queue) Transaction(txcb mq.TxCallback) error {
+	txQ := &Queue{jobs: make([]*mq.Job, 0, 10), publishImmediately: true}
 	if err := txcb(txQ); err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func (q *Queue) Transaction(txcb queue.TxCallback) error {
 
 // Consume implements Queue. The advertisedWindow value is the maximum number of
 // unacknowledged jobs. Use 0 for an infinite window.
-func (q *Queue) Consume(advertisedWindow int) (queue.JobIter, error) {
+func (q *Queue) Consume(advertisedWindow int) (mq.JobIter, error) {
 	jobIter := JobIter{
 		q:       q,
 		RWMutex: &q.RWMutex,
@@ -145,7 +145,7 @@ type JobIter struct {
 // Acknowledger implements a queue.Acknowledger interface.
 type Acknowledger struct {
 	q   *Queue
-	j   *queue.Job
+	j   *mq.Job
 	chn chan struct{}
 }
 
@@ -183,12 +183,12 @@ func (i *JobIter) isClosed() bool {
 }
 
 // Next returns the next job in the iter.
-func (i *JobIter) Next() (*queue.Job, error) {
+func (i *JobIter) Next() (*mq.Job, error) {
 	i.acquire()
 	for {
 		if i.isClosed() {
 			i.release()
-			return nil, queue.ErrAlreadyClosed.New()
+			return nil, mq.ErrAlreadyClosed.New()
 		}
 
 		j, err := i.next()
@@ -205,7 +205,7 @@ func (i *JobIter) Next() (*queue.Job, error) {
 	}
 }
 
-func (i *JobIter) next() (*queue.Job, error) {
+func (i *JobIter) next() (*mq.Job, error) {
 	i.Lock()
 	defer i.Unlock()
 	if len(i.q.jobs) <= i.q.idx {
